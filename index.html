@@ -1,0 +1,2094 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SENAC ADM · Sistema ERP Integrado de Negócios</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --sidebar-bg: #0F172A;
+      --sidebar-hover: #1E293B;
+      --sidebar-text: #CBD5E1;
+      --bg: #F1F5F9;
+      --card: #FFFFFF;
+      --ink: #0F172A;
+      --muted: #64748B;
+      --border: #E2E8F0;
+      --primary: #1D4ED8;
+      --primary-hover: #1E40AF;
+      --primary-soft: #EFF6FF;
+      --accent: #F59E0B;
+      --success: #059669;
+      --success-soft: #ECFDF5;
+      --danger: #DC2626;
+      --danger-soft: #FEF2F2;
+      --radius: 8px;
+      --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, textarea, select { font-family: inherit; font-size: inherit; }
+    h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -0.015em; }
+    .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+    .erp-layout { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 256px;
+      background: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      border-right: 1px solid #1E293B;
+    }
+    .sidebar-brand { padding: 20px 18px; border-bottom: 1px solid #1E293B; }
+    .sidebar-brand .tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #60A5FA;
+      background: rgba(59, 130, 246, 0.15);
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    .sidebar-brand h1 { color: #FFF; font-size: 17px; margin-top: 8px; }
+    .sidebar-nav { padding: 14px 10px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      color: var(--sidebar-text);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-item:hover { background: var(--sidebar-hover); color: #FFF; }
+    .nav-item.active { background: var(--primary); color: #FFF; font-weight: 600; }
+    .sidebar-footer { padding: 14px 16px; border-top: 1px solid #1E293B; font-size: 12px; color: #94A3B8; }
+
+    .main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .topbar {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .content { padding: 24px; max-width: 1240px; width: 100%; margin: 0 auto; }
+
+    .mobile-bar {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      inset-x: 0;
+      background: var(--sidebar-bg);
+      border-top: 1px solid #1E293B;
+      z-index: 40;
+      grid-template-columns: repeat(5, 1fr);
+    }
+    .mobile-bar button {
+      background: transparent;
+      border: none;
+      color: #94A3B8;
+      padding: 10px 4px;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .mobile-bar button.active { color: #FFF; background: rgba(29, 78, 216, 0.35); font-weight: 600; }
+
+    @media (max-width: 860px) {
+      .sidebar { display: none; }
+      .mobile-bar { display: grid; }
+      .content { padding: 16px 14px 86px; }
+      .topbar { padding: 12px 14px; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    .module-card {
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .module-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .grid-2 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    .grid-3 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .grid-4 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+    .span-2 { grid-column: 1 / -1; }
+
+    .kpi-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
+    .kpi-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .kpi-value { font-size: 26px; font-weight: 700; margin-top: 6px; color: var(--ink); }
+    .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+    .badge.ok { background: var(--success-soft); color: var(--success); }
+    .badge.warn { background: #FEF3C7; color: #B45309; }
+    .badge.danger { background: var(--danger-soft); color: var(--danger); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: var(--primary); color: #FFF; }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+    .btn-success { background: var(--success); color: #FFF; }
+    .btn-success:hover:not(:disabled) { filter: brightness(0.92); }
+    .btn-outline { background: var(--card); color: var(--ink); border-color: var(--border); }
+    .btn-outline:hover:not(:disabled) { border-color: #94A3B8; background: #F8FAFC; }
+    .btn-danger { background: var(--danger-soft); color: var(--danger); border-color: #FECACA; }
+    .btn-danger:hover:not(:disabled) { background: #FEE2E2; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+    .field-label { display: block; font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 5px; }
+    .input, .textarea, .select {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: #FFF;
+      color: var(--ink);
+      border-radius: 6px;
+      padding: 8px 11px;
+      font-size: 13.5px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .input:focus, .textarea:focus, .select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+    }
+
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); overflow-x: auto; margin-bottom: 18px; }
+    .tab-btn {
+      padding: 10px 16px;
+      border: none;
+      background: transparent;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      background: #F8FAFC;
+    }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+
+    .photo-drop { border: 2px dashed #CBD5E1; border-radius: var(--radius); padding: 14px; text-align: center; background: #F8FAFC; }
+    .thumb {
+      width: 54px;
+      height: 54px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+      background: #F8FAFC;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+    .preview-lg { width: 100%; max-height: 220px; object-fit: contain; border-radius: 6px; border: 1px solid var(--border); background: #FFF; }
+    .att-card { display: flex; gap: 12px; align-items: flex-start; background: #FFF; border: 1px solid var(--border); border-radius: 6px; padding: 10px; }
+
+    .dre-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px dashed var(--border); font-size: 13px; }
+    .dre-row.total { border-bottom: none; border-top: 2px solid var(--ink); font-weight: 700; font-size: 14px; padding-top: 10px; margin-top: 4px; }
+
+    .toast-wrap { position: fixed; top: 16px; right: 16px; z-index: 100; display: flex; flex-direction: column; gap: 8px; }
+    .toast { background: var(--sidebar-bg); color: #FFF; padding: 10px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.18); }
+    .toast.ok { background: var(--success); }
+    .toast.err { background: var(--danger); }
+
+    @media print {
+      .sidebar, .topbar, .mobile-bar, .no-print { display: none !important; }
+      body { background: #FFF; }
+      .content { padding: 0; max-width: 100%; }
+      .card, .module-card { box-shadow: none; break-inside: avoid; margin-bottom: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="toast-wrap" class="toast-wrap"></div>
+  <div id="app"></div>
+
+  <script>
+    const STORAGE_KEY = "senac-adm-erp-integrado-v1";
+    const API_URL = "/.netlify/functions/erp";
+
+    const PLAN_TEMPLATES = [
+      {
+        id: "marketing",
+        label: "1. Marketing",
+        modules: [
+          {
+            id: "mkt_publico",
+            title: "Módulo 1.1 · Público-Alvo & Segmentação (ICP)",
+            desc: "Defina quem compra da empresa e quais dores o negócio resolve.",
+            fields: [
+              "Perfil do Cliente Ideal (idade, renda, localização, hábitos)",
+              "Dores, Necessidades e Desejos Atendidos",
+              "Comportamento de Compra e Decisores"
+            ]
+          },
+          {
+            id: "mkt_mix",
+            title: "Módulo 1.2 · Posicionamento & Mix de Marketing (4 Ps)",
+            desc: "Estratégia de valor, produto/serviço, canais e comunicação.",
+            fields: [
+              "Proposta de Valor Única e Diferenciais Competitivos",
+              "Estratégia de Produto / Serviço e Embalagem / Experiência",
+              "Praça (Canais de Venda Físicos e Digitais)",
+              "Promoção (Identidade visual, redes sociais e comunicação)"
+            ]
+          },
+          {
+            id: "mkt_funil",
+            title: "Módulo 1.3 · Funil de Vendas, Metas & Ações",
+            desc: "Planejamento prático para atrair clientes, feira e conversão.",
+            fields: [
+              "Ações de Atração e Captação (Feira SENAC, tráfego, parcerias)",
+              "Meta Mensal de Clientes / Vendas e Conversão",
+              "Orçamento de Marketing (R$) e Indicadores (CAC / ROI)"
+            ]
+          }
+        ]
+      },
+      {
+        id: "logistica",
+        label: "2. Logística / Operações",
+        modules: [
+          {
+            id: "log_suprimentos",
+            title: "Módulo 2.1 · Cadeia de Suprimentos & Fornecedores",
+            desc: "Origem dos insumos, parceiros e garantia de abastecimento.",
+            fields: [
+              "Fornecedores Principais, Região e Condições de Compra",
+              "Matérias-Primas / Insumos / Recursos Terceirizados",
+              "Critérios de Seleção e Fornecedor de Contingência (Plano B)"
+            ]
+          },
+          {
+            id: "log_operacao",
+            title: "Módulo 2.2 · Fluxo Operacional (Produção ou Execução do Serviço)",
+            desc: "Como o produto é fabricado ou o serviço é prestado do início ao fim.",
+            fields: [
+              "Passo a Passo do Processo Operacional",
+              "Tempo Médio de Produção / Atendimento (Lead Time)",
+              "Equipamentos, Ferramentas e Controle de Qualidade"
+            ]
+          },
+          {
+            id: "log_estoque",
+            title: "Módulo 2.3 · Armazenagem, Estoque & Capacidade",
+            desc: "Gestão de estoque, espaço físico ou agenda de atendimento.",
+            fields: [
+              "Local e Condições de Armazenamento / Infraestrutura",
+              "Estoque Mínimo e Ponto de Reposição (ou Capacidade Máxima de Agenda)",
+              "Controle de Validade, Giro e Redução de Perdas"
+            ]
+          },
+          {
+            id: "log_entrega",
+            title: "Módulo 2.4 · Distribuição, Entrega & Pós-Venda",
+            desc: "Como chega ao cliente e como a empresa acompanha após a venda.",
+            fields: [
+              "Modais de Entrega / Atendimento (Balcão, Delivery, Correios, Online)",
+              "Prazo Prometido ao Cliente e Política de Frete",
+              "Pós-Venda, Garantia, Trocas e Devoluções"
+            ]
+          }
+        ]
+      },
+      {
+        id: "financeiro",
+        label: "3. Financeiro",
+        modules: [
+          {
+            id: "fin_invest",
+            title: "Módulo 3.1 · Investimento Inicial & Fontes de Recursos",
+            desc: "Quanto custa abrir ou estruturar a operação e de onde vem o capital.",
+            fields: [
+              "Investimento Fixo (Equipamentos, Móveis, Reforma, Sistemas)",
+              "Capital de Giro Inicial e Estoque de Abertura",
+              "Origem dos Recursos (Sócios, Empréstimo, Investidor) e Payback"
+            ]
+          },
+          {
+            id: "fin_receitas",
+            title: "Módulo 3.2 · Projeção de Receitas, Caixa & Viabilidade",
+            desc: "Metas financeiras, formas de recebimento e saúde do caixa.",
+            fields: [
+              "Fontes de Receita e Formas de Pagamento Aceitas",
+              "Meta de Faturamento Mensal (R$) e Cenários (Pessimista / Realista / Otimista)",
+              "Prazo Médio de Recebimento vs. Pagamento (Fluxo de Caixa)",
+              "Reserva de Emergência e Análise de Viabilidade Financeira"
+            ]
+          }
+        ]
+      },
+      {
+        id: "pessoas",
+        label: "4. Gestão de Pessoas",
+        modules: [
+          {
+            id: "pes_estrutura",
+            title: "Módulo 4.1 · Estrutura Organizacional & Cargos",
+            desc: "Divisão da equipe, lideranças e papéis de cada integrante.",
+            fields: [
+              "Organograma da Empresa e Sócios",
+              "Descrição de Cargos, Funções e Responsabilidades",
+              "Modelo de Contratação (CLT, MEI, Estágio, Terceirizado)"
+            ]
+          },
+          {
+            id: "pes_treino",
+            title: "Módulo 4.2 · Recrutamento, Seleção & Treinamento",
+            desc: "Como contratar, integrar novos membros e capacitar o time.",
+            fields: [
+              "Competências Técnicas e Comportamentais Buscadas",
+              "Processo Seletivo e Integração (Onboarding)",
+              "Plano de Treinamento e Capacitação Contínua"
+            ]
+          },
+          {
+            id: "pes_cultura",
+            title: "Módulo 4.3 · Jornada, Remuneração & Cultura Organizacional",
+            desc: "Escala de trabalho, incentivos e valores no dia a dia.",
+            fields: [
+              "Escala de Trabalho, Turnos e Carga Horária",
+              "Política Salarial, Comissões, Metas e Benefícios",
+              "Cultura, Clima Organizacional e Avaliação de Desempenho"
+            ]
+          }
+        ]
+      },
+      {
+        id: "precificacao",
+        label: "5. Precificação Detalhada",
+        modules: [
+          {
+            id: "pre_mercado",
+            title: "Módulo 5.1 · Análise de Mercado & Concorrência",
+            desc: "Pesquisa de preços praticados e percepção de valor pelo cliente.",
+            fields: [
+              "Preços Médios dos Concorrentes Diretos (Mínimo / Médio / Máximo)",
+              "Posicionamento de Preço (Popular / Intermediário / Premium)",
+              "Justificativa de Valor Percebido pelo Cliente"
+            ]
+          },
+          {
+            id: "pre_politica",
+            title: "Módulo 5.2 · Política Comercial, Descontos & Combos",
+            desc: "Regras claras para negociação sem prejudicar a margem de lucro.",
+            fields: [
+              "Limite Máximo de Desconto Permitido (%)",
+              "Condições para Atacado, Pacotes, Combos ou Fidelidade",
+              "Regras para Pagamento à Vista (PIX/Dinheiro) vs. Parcelado"
+            ]
+          }
+        ]
+      }
+    ];
+
+    function uid(prefix = "id") {
+      return prefix + "_" + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-3);
+    }
+
+    function createDefaultPricing() {
+      return {
+        directCosts: [
+          { id: uid("dc"), name: "Matéria-prima / Mão de obra direta", value: "25,00" },
+          { id: uid("dc"), name: "Embalagem / Materiais de apoio", value: "3,50" }
+        ],
+        pctTax: "6",
+        pctCard: "3,5",
+        pctCommission: "0",
+        pctOther: "2",
+        pctFixedAlloc: "10",
+        pctProfit: "20",
+        practicedPrice: ""
+      };
+    }
+
+    function createEmptyPlanData() {
+      const obj = {};
+      PLAN_TEMPLATES.forEach(t => {
+        obj[t.id] = {
+          modules: t.modules.map(m => ({
+            id: m.id,
+            title: m.title,
+            desc: m.desc,
+            fields: m.fields.map(label => ({ id: uid("f"), label, value: "" }))
+          })),
+          customFields: [],
+          attachments: []
+        };
+      });
+      return obj;
+    }
+
+    function ensurePlanShape(planObj) {
+      if (!planObj) return createEmptyPlanData();
+      PLAN_TEMPLATES.forEach(t => {
+        const cur = planObj[t.id];
+        if (!cur || !Array.isArray(cur.modules)) {
+          const fresh = createEmptyPlanData()[t.id];
+          if (cur && Array.isArray(cur.fields)) {
+            fresh.customFields = cur.fields
+              .filter(f => String(f.value || "").trim().length > 0 || f.custom)
+              .map(f => ({ id: f.id || uid("f"), label: f.label, value: f.value || "" }));
+          }
+          planObj[t.id] = fresh;
+        } else {
+          if (!Array.isArray(cur.customFields)) cur.customFields = [];
+          if (!Array.isArray(cur.attachments)) cur.attachments = [];
+          t.modules.forEach(tm => {
+            if (!cur.modules.some(m => m.id === tm.id)) {
+              cur.modules.push({
+                id: tm.id,
+                title: tm.title,
+                desc: tm.desc,
+                fields: tm.fields.map(label => ({ id: uid("f"), label, value: "" }))
+              });
+            }
+          });
+        }
+      });
+      return planObj;
+    }
+
+    function createSeedData() {
+      const compId = uid("emp");
+      const item1 = uid("it");
+      const item2 = uid("it");
+
+      const planGeral = createEmptyPlanData();
+      planGeral.marketing.modules[0].fields[0].value = "Clientes locais entre 20 e 50 anos que buscam praticidade e atendimento personalizado.";
+      planGeral.pessoas.modules[0].fields[0].value = "Diretoria (2 sócios), Operação/Produção e Atendimento Comercial.";
+
+      const pricing1 = createDefaultPricing();
+      const pricing2 = {
+        directCosts: [{ id: uid("dc"), name: "Hora técnica do profissional + deslocamento", value: "45,00" }],
+        pctTax: "6", pctCard: "2,5", pctCommission: "5", pctOther: "0", pctFixedAlloc: "15", pctProfit: "25", practicedPrice: ""
+      };
+
+      return {
+        activeCompanyId: compId,
+        companies: [
+          {
+            id: compId,
+            name: "Empresa Modelo SENAC",
+            type: "misto",
+            segment: "Comércio & Serviços Integrados",
+            team: "Turma Técnico em Administração",
+            city: "Aquidabã – BA",
+            cnpj: "00.000.000/0001-00 (Simulado)",
+            mission: "Entregar produtos e serviços com qualidade, gestão transparente e preço justo.",
+            logo: "",
+            fixedCosts: [
+              { id: uid("fc"), name: "Aluguel / Espaço físico", value: "1200,00" },
+              { id: uid("fc"), name: "Energia, Água e Internet", value: "380,00" },
+              { id: uid("fc"), name: "Pró-labore / Equipe fixa", value: "2200,00" },
+              { id: uid("fc"), name: "Marketing fixo / Sistemas", value: "220,00" }
+            ],
+            items: [
+              {
+                id: item1,
+                kind: "produto",
+                code: "PRD-001",
+                name: "Produto Exemplo (Vendas)",
+                category: "Linha Principal",
+                unit: "Unidade",
+                image: "",
+                description: "Item de exemplo para demonstrar o cadastro de vendas com ficha técnica integrada.",
+                composition: "Matéria-prima principal, embalagem reciclável e rótulo.",
+                process: "Recebimento, conferência de qualidade, envase/montagem e rotulagem.",
+                supplier: "Fornecedor Regional Ltda",
+                price: "48,72",
+                cost: "28,50",
+                pricing: pricing1,
+                plans: createEmptyPlanData()
+              },
+              {
+                id: item2,
+                kind: "servico",
+                code: "SRV-001",
+                name: "Serviço Exemplo (Consultoria / Atendimento)",
+                category: "Serviços Especializados",
+                unit: "Hora / Sessão",
+                image: "",
+                description: "Exemplo de serviço prestado com cálculo de hora técnica, taxas e margem.",
+                composition: "Diagnóstico inicial, execução técnica e relatório de entrega.",
+                process: "Agendamento, atendimento presencial ou online e acompanhamento pós-serviço.",
+                supplier: "Equipe Interna / Parceiro Local",
+                price: "96,77",
+                cost: "45,00",
+                pricing: pricing2,
+                plans: createEmptyPlanData()
+              }
+            ],
+            generalPlans: planGeral
+          }
+        ]
+      };
+    }
+
+    function loadStore() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.companies) && parsed.companies.length) {
+            parsed.companies.forEach(c => {
+              c.generalPlans = ensurePlanShape(c.generalPlans);
+              (c.items || []).forEach(it => { it.plans = ensurePlanShape(it.plans); });
+            });
+            return parsed;
+          }
+        }
+      } catch {}
+      const seed = createSeedData();
+      saveLocalOnly(seed);
+      return seed;
+    }
+
+    function saveLocalOnly(obj) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+        return true;
+      } catch {
+        toast("Espaço do navegador quase cheio! Remova alguns anexos muito pesados.", "err");
+        return false;
+      }
+    }
+
+    let store = loadStore();
+    let cloudState = "syncing";
+    let syncTimer = null;
+
+    function updateCloudBadge() {
+      const el = document.getElementById("cloud-pill");
+      if (!el) return;
+      if (cloudState === "synced") {
+        el.className = "badge ok";
+        el.textContent = "☁️ Salvo na nuvem";
+      } else if (cloudState === "syncing") {
+        el.className = "badge warn";
+        el.textContent = "⏳ Sincronizando...";
+      } else if (cloudState === "error") {
+        el.className = "badge danger";
+        el.textContent = "⚠️ Erro na nuvem (salvo local)";
+      } else {
+        el.className = "badge";
+        el.textContent = "💾 Modo local";
+      }
+    }
+
+    async function pushCompanyToCloud(company) {
+      if (!company) return;
+      cloudState = "syncing";
+      updateCloudBadge();
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ company })
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        cloudState = "synced";
+      } catch {
+        cloudState = location.protocol === "file:" ? "local" : "error";
+      }
+      updateCloudBadge();
+    }
+
+    async function deleteCompanyFromCloud(id) {
+      try {
+        await fetch(`${API_URL}?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+      } catch {}
+    }
+
+    async function loadFromCloud(showToast = false) {
+      cloudState = "syncing";
+      updateCloudBadge();
+      try {
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        const remote = Array.isArray(data.companies) ? data.companies : [];
+        if (remote.length > 0) {
+          remote.forEach(c => {
+            c.generalPlans = ensurePlanShape(c.generalPlans);
+            (c.items || []).forEach(it => { it.plans = ensurePlanShape(it.plans); });
+          });
+          store.companies = remote;
+          if (!remote.some(c => c.id === store.activeCompanyId)) {
+            store.activeCompanyId = remote[0].id;
+          }
+          saveLocalOnly(store);
+          cloudState = "synced";
+          render();
+          if (showToast) toast("Dados atualizados da nuvem!", "ok");
+        } else {
+          for (const c of store.companies) await pushCompanyToCloud(c);
+          cloudState = "synced";
+          updateCloudBadge();
+          if (showToast) toast("Nuvem inicializada com sucesso!", "ok");
+        }
+      } catch {
+        cloudState = location.protocol === "file:" ? "local" : "error";
+        updateCloudBadge();
+        if (showToast) toast("Não foi possível conectar à nuvem da Netlify.", "err");
+      }
+    }
+
+    function saveStore(immediateCloud = false) {
+      const ok = saveLocalOnly(store);
+      const comp = getActiveCompany();
+      if (immediateCloud) {
+        clearTimeout(syncTimer);
+        pushCompanyToCloud(comp);
+      } else {
+        cloudState = "syncing";
+        updateCloudBadge();
+        clearTimeout(syncTimer);
+        syncTimer = setTimeout(() => pushCompanyToCloud(getActiveCompany()), 1000);
+      }
+      return ok;
+    }
+
+    let ui = {
+      page: "dashboard",
+      editingCompanyId: null,
+      editingItemId: null,
+      planScope: "geral",
+      planTab: "marketing",
+      searchCatalog: ""
+    };
+
+    const esc = (s) => String(s ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
+    function parseNum(v) {
+      if (typeof v === "number") return isFinite(v) ? v : 0;
+      let s = String(v ?? "").trim();
+      if (!s) return 0;
+      if (s.includes(",") && s.includes(".")) s = s.replace(/\./g, "").replace(",", ".");
+      else if (s.includes(",")) s = s.replace(",", ".");
+      const n = parseFloat(s);
+      return isFinite(n) ? n : 0;
+    }
+
+    const brl = (n) => Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    const fmtPct = (n) => Number(n || 0).toFixed(1).replace(".", ",") + "%";
+    const fmtBytes = (b) => b > 1024 * 1024 ? (b / (1024 * 1024)).toFixed(1) + " MB" : Math.max(1, Math.round(b / 1024)) + " KB";
+
+    function toast(msg, type = "default") {
+      const wrap = document.getElementById("toast-wrap");
+      const el = document.createElement("div");
+      el.className = "toast" + (type === "ok" ? " ok" : type === "err" ? " err" : "");
+      el.textContent = msg;
+      wrap.appendChild(el);
+      setTimeout(() => el.remove(), 3200);
+    }
+
+    function getActiveCompany() {
+      return store.companies.find(c => c.id === store.activeCompanyId) || store.companies[0];
+    }
+
+    function computePricing(pr) {
+      const p = pr || createDefaultPricing();
+      const cdu = (p.directCosts || []).reduce((acc, r) => acc + parseNum(r.value), 0);
+      const pctTax = parseNum(p.pctTax);
+      const pctCard = parseNum(p.pctCard);
+      const pctCommission = parseNum(p.pctCommission);
+      const pctOther = parseNum(p.pctOther);
+      const pctFixedAlloc = parseNum(p.pctFixedAlloc);
+      const pctProfit = parseNum(p.pctProfit);
+
+      const pctSaleVar = pctTax + pctCard + pctCommission + pctOther;
+      const totalPct = pctSaleVar + pctFixedAlloc + pctProfit;
+      const invalid = totalPct >= 100;
+      const divisor = invalid ? 0 : 1 - totalPct / 100;
+      const suggestedPrice = !invalid && divisor > 0 ? cdu / divisor : 0;
+      const practiced = parseNum(p.practicedPrice);
+      const finalPrice = practiced > 0 ? practiced : suggestedPrice;
+      const markupMult = cdu > 0 && finalPrice > 0 ? finalPrice / cdu : 0;
+
+      const valTax = finalPrice * (pctTax / 100);
+      const valCard = finalPrice * (pctCard / 100);
+      const valCommission = finalPrice * (pctCommission / 100);
+      const valOther = finalPrice * (pctOther / 100);
+      const valSaleVar = valTax + valCard + valCommission + valOther;
+      const contribMargin = finalPrice - cdu - valSaleVar;
+      const contribMarginPct = finalPrice > 0 ? (contribMargin / finalPrice) * 100 : 0;
+      const valFixedAlloc = finalPrice * (pctFixedAlloc / 100);
+      const netProfit = contribMargin - valFixedAlloc;
+      const netProfitPct = finalPrice > 0 ? (netProfit / finalPrice) * 100 : 0;
+
+      return {
+        cdu, pctTax, pctCard, pctCommission, pctOther, pctSaleVar, pctFixedAlloc, pctProfit,
+        totalPct, invalid, divisor, suggestedPrice, practiced, finalPrice, markupMult,
+        valTax, valCard, valCommission, valOther, valSaleVar, contribMargin, contribMarginPct,
+        valFixedAlloc, netProfit, netProfitPct
+      };
+    }
+
+    function getCompanyFixedTotal(company) {
+      return (company.fixedCosts || []).reduce((acc, r) => acc + parseNum(r.value), 0);
+    }
+
+    function getPlanCompletion(company) {
+      const checkPlans = (planObj) => {
+        const shaped = ensurePlanShape(planObj);
+        let total = 0, filled = 0;
+        PLAN_TEMPLATES.forEach(t => {
+          const p = shaped[t.id];
+          (p.modules || []).forEach(m => {
+            (m.fields || []).forEach(f => {
+              total++;
+              if (String(f.value || "").trim().length > 0) filled++;
+            });
+          });
+          (p.customFields || []).forEach(f => {
+            total++;
+            if (String(f.value || "").trim().length > 0) filled++;
+          });
+        });
+        return { total, filled };
+      };
+      let res = checkPlans(company.generalPlans);
+      company.items.forEach(it => {
+        const r = checkPlans(it.plans);
+        res.total += r.total;
+        res.filled += r.filled;
+      });
+      return res.total ? Math.round((res.filled / res.total) * 100) : 0;
+    }
+
+    function compressImageFile(file, maxSize = 640) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("Erro ao ler arquivo"));
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onerror = () => reject(new Error("Imagem inválida"));
+          img.onload = () => {
+            let w = img.width, h = img.height;
+            if (w > h && w > maxSize) { h = Math.round(h * (maxSize / w)); w = maxSize; }
+            else if (h >= w && h > maxSize) { w = Math.round(w * (maxSize / h)); h = maxSize; }
+            const canvas = document.createElement("canvas");
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL("image/jpeg", 0.78));
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderDashboard(company) {
+      const items = company.items || [];
+      const fixedTotal = getCompanyFixedTotal(company);
+      const completion = getPlanCompletion(company);
+
+      const pricedItems = items.map(it => ({ it, calc: computePricing(it.pricing) })).filter(x => x.calc.finalPrice > 0);
+      const avgMargin = pricedItems.length
+        ? pricedItems.reduce((s, x) => s + x.calc.netProfitPct, 0) / pricedItems.length
+        : 0;
+      const avgContrib = pricedItems.length
+        ? pricedItems.reduce((s, x) => s + x.calc.contribMargin, 0) / pricedItems.length
+        : 0;
+      const beUnitsAvg = avgContrib > 0 ? Math.ceil(fixedTotal / avgContrib) : 0;
+
+      const typeLabel = company.type === "servico" ? "Prestação de Serviços" : company.type === "vendas" ? "Vendas / Comércio" : "Vendas & Serviços";
+
+      return `
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+          <div>
+            <span class="badge">${esc(typeLabel)}</span>
+            <h2 style="font-size:24px; margin-top:6px;">Painel Integrado · ${esc(company.name)}</h2>
+            <p style="color:var(--muted); margin:2px 0 0;">${esc(company.segment)} · ${esc(company.team)} · ${esc(company.city)}</p>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-outline" onclick="setPage('catalogo')">+ Novo Produto/Serviço</button>
+            <button class="btn btn-primary" onclick="setPage('planos')">Preencher os 5 Planos</button>
+          </div>
+        </div>
+
+        <div class="grid-4">
+          <div class="kpi-card">
+            <div class="kpi-label">Itens no Catálogo</div>
+            <div class="kpi-value num">${items.length}</div>
+            <div class="kpi-sub">${items.filter(i => i.kind === "produto").length} produtos · ${items.filter(i => i.kind === "servico").length} serviços</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Margem Líquida Média</div>
+            <div class="kpi-value num" style="color:${avgMargin >= 0 ? "var(--success)" : "var(--danger)"}">${fmtPct(avgMargin)}</div>
+            <div class="kpi-sub">Baseada na precificação detalhada</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Custo Fixo Mensal</div>
+            <div class="kpi-value num">${brl(fixedTotal)}</div>
+            <div class="kpi-sub">${beUnitsAvg ? `Empate estimado: ~${beUnitsAvg} unid/serv` : "Preencha custos e preços"}</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Planos Preenchidos</div>
+            <div class="kpi-value num">${completion}%</div>
+            <div class="kpi-sub">Dos módulos e campos ativos</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <h3 style="font-size:16px;">Integração Catálogo × Ficha Técnica × Precificação</h3>
+            <button class="btn btn-outline btn-sm" onclick="setPage('catalogo')">Gerenciar Catálogo</button>
+          </div>
+          ${items.length ? `
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Tipo</th>
+                    <th>Custo Direto</th>
+                    <th>Preço Final</th>
+                    <th>Margem Contrib.</th>
+                    <th>Lucro Líq.</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${items.map(it => {
+                    const c = computePricing(it.pricing);
+                    return `
+                      <tr>
+                        <td>
+                          <div style="display:flex; align-items:center; gap:10px;">
+                            ${it.image ? `<img src="${esc(it.image)}" class="thumb" alt="" />` : `<div class="thumb">Sem foto</div>`}
+                            <div>
+                              <div style="font-weight:600;">${esc(it.name)}</div>
+                              <div style="font-size:11px; color:var(--muted);">${esc(it.code || "")} · ${esc(it.category || "Geral")}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td><span class="badge ${it.kind === "servico" ? "warn" : ""}">${it.kind === "servico" ? "Serviço" : "Produto"}</span></td>
+                        <td class="num">${brl(c.cdu)}</td>
+                        <td class="num" style="font-weight:700;">${c.finalPrice ? brl(c.finalPrice) : "—"}</td>
+                        <td class="num">${c.finalPrice ? `${brl(c.contribMargin)} (${fmtPct(c.contribMarginPct)})` : "—"}</td>
+                        <td>
+                          <span class="badge ${c.netProfit > 0 ? "ok" : "danger"} num">
+                            ${c.finalPrice ? `${brl(c.netProfit)} (${fmtPct(c.netProfitPct)})` : "Definir"}
+                          </span>
+                        </td>
+                        <td>
+                          <button class="btn btn-outline btn-sm" onclick="openItemPlan('${esc(it.id)}', 'precificacao')">Precificar</button>
+                        </td>
+                      </tr>
+                    `;
+                  }).join("")}
+                </tbody>
+              </table>
+            </div>
+          ` : `<p style="color:var(--muted);">Nenhum produto ou serviço cadastrado ainda. Vá em Catálogo &amp; Fichas para adicionar.</p>`}
+        </div>
+      `;
+    }
+
+    function renderEmpresas() {
+      const editing = ui.editingCompanyId ? store.companies.find(c => c.id === ui.editingCompanyId) : null;
+
+      return `
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+          <div>
+            <h2 style="font-size:22px;">Empresas Cadastradas</h2>
+            <p style="color:var(--muted); margin:2px 0 0;">Crie qualquer empresa (serviços, vendas ou mista) e alterne entre elas.</p>
+          </div>
+          <button class="btn btn-primary" onclick="newCompany()">+ Criar Nova Empresa</button>
+        </div>
+
+        ${editing ? `
+          <div class="card" style="margin-bottom:20px; border-color:var(--primary);">
+            <h3 style="font-size:17px; margin-bottom:14px;">Editar Dados da Empresa</h3>
+            <form id="company-form" class="grid-2">
+              <div>
+                <label class="field-label">Nome da Empresa *</label>
+                <input id="comp-name" class="input" required value="${esc(editing.name)}" />
+              </div>
+              <div>
+                <label class="field-label">Tipo de Negócio *</label>
+                <select id="comp-type" class="select">
+                  <option value="vendas" ${editing.type === "vendas" ? "selected" : ""}>Vendas / Comércio / Indústria</option>
+                  <option value="servico" ${editing.type === "servico" ? "selected" : ""}>Prestação de Serviços</option>
+                  <option value="misto" ${editing.type === "misto" ? "selected" : ""}>Misto (Vendas + Serviços)</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label">Segmento / Ramo</label>
+                <input id="comp-segment" class="input" value="${esc(editing.segment)}" placeholder="Ex: Alimentação, Estética, Tecnologia..." />
+              </div>
+              <div>
+                <label class="field-label">Turma / Equipe SENAC</label>
+                <input id="comp-team" class="input" value="${esc(editing.team)}" placeholder="Ex: Técnico em ADM · Grupo 3" />
+              </div>
+              <div>
+                <label class="field-label">Cidade / Unidade</label>
+                <input id="comp-city" class="input" value="${esc(editing.city)}" />
+              </div>
+              <div>
+                <label class="field-label">CNPJ (real ou simulado)</label>
+                <input id="comp-cnpj" class="input num" value="${esc(editing.cnpj)}" />
+              </div>
+              <div class="span-2">
+                <label class="field-label">Missão / Propósito da Empresa</label>
+                <textarea id="comp-mission" rows="2" class="textarea">${esc(editing.mission)}</textarea>
+              </div>
+              <div class="span-2">
+                <label class="field-label">Logomarca (Anexo de Imagem opcional)</label>
+                <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+                  ${editing.logo ? `<img src="${esc(editing.logo)}" class="thumb" alt="Logo" />` : `<div class="thumb">Logo</div>`}
+                  <input type="file" accept="image/*" onchange="uploadCompanyLogo('${esc(editing.id)}', this)" />
+                  ${editing.logo ? `<button type="button" class="btn btn-danger btn-sm" onclick="removeCompanyLogo('${esc(editing.id)}')">Remover logo</button>` : ""}
+                </div>
+              </div>
+              <div class="span-2" style="display:flex; gap:10px; justify-content:flex-end;">
+                <button type="button" class="btn btn-outline" onclick="cancelEditCompany()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar Empresa</button>
+              </div>
+            </form>
+          </div>
+        ` : ""}
+
+        <div class="grid-3">
+          ${store.companies.map(c => {
+            const active = c.id === store.activeCompanyId;
+            return `
+              <div class="card" style="display:flex; flex-direction:column; justify-content:space-between; border-color:${active ? "var(--primary)" : "var(--border)"};">
+                <div>
+                  <div style="display:flex; align-items:center; gap:12px;">
+                    ${c.logo ? `<img src="${esc(c.logo)}" class="thumb" alt="" />` : `<div class="thumb" style="font-weight:700; color:var(--primary);">${esc(c.name.slice(0,2).toUpperCase())}</div>`}
+                    <div>
+                      <h3 style="font-size:16px;">${esc(c.name)}</h3>
+                      <span class="badge ${c.type === "servico" ? "warn" : ""}">${c.type === "servico" ? "Serviços" : c.type === "vendas" ? "Vendas" : "Misto"}</span>
+                    </div>
+                  </div>
+                  <p style="font-size:12.5px; color:var(--muted); margin:12px 0 0;">${esc(c.segment || "Sem segmento")} · ${esc(c.city || "")}</p>
+                  <p style="font-size:12px; color:var(--muted); margin:4px 0 0;">${c.items.length} itens cadastrados</p>
+                </div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:16px; padding-top:12px; border-top:1px solid var(--border);">
+                  ${active ? `<span class="badge ok">Empresa Ativa</span>` : `<button class="btn btn-primary btn-sm" onclick="selectCompany('${esc(c.id)}')">Selecionar</button>`}
+                  <button class="btn btn-outline btn-sm" onclick="editCompany('${esc(c.id)}')">Editar</button>
+                  ${store.companies.length > 1 ? `<button class="btn btn-danger btn-sm" onclick="deleteCompany('${esc(c.id)}')">Excluir</button>` : ""}
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function renderCatalogo(company) {
+      const editingItem = ui.editingItemId ? company.items.find(i => i.id === ui.editingItemId) : null;
+      const q = ui.searchCatalog.toLowerCase();
+      const filtered = company.items.filter(i =>
+        !q || i.name.toLowerCase().includes(q) || (i.category || "").toLowerCase().includes(q) || (i.code || "").toLowerCase().includes(q)
+      );
+
+      return `
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+          <div>
+            <h2 style="font-size:22px;">Catálogo &amp; Fichas Técnicas</h2>
+            <p style="color:var(--muted); margin:2px 0 0;">Cadastre produtos ou serviços, anexe fotos e preencha a ficha técnica completa.</p>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            ${company.type !== "servico" ? `<button class="btn btn-primary" onclick="newItem('produto')">+ Novo Produto (Venda)</button>` : ""}
+            ${company.type !== "vendas" ? `<button class="btn btn-success" onclick="newItem('servico')">+ Novo Serviço</button>` : ""}
+          </div>
+        </div>
+
+        ${editingItem ? (() => {
+          const isServ = editingItem.kind === "servico";
+          const calc = computePricing(editingItem.pricing);
+          return `
+            <div class="card" style="margin-bottom:22px; border-color:var(--primary);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <h3 style="font-size:17px;">Ficha Técnica · ${isServ ? "Serviço" : "Produto"}</h3>
+                <button class="btn btn-outline btn-sm" onclick="openItemPlan('${esc(editingItem.id)}', 'precificacao')">Abrir Precificação Detalhada →</button>
+              </div>
+              <form id="item-form" class="grid-2">
+                <div>
+                  <label class="field-label">Nome do ${isServ ? "Serviço" : "Produto"} *</label>
+                  <input id="it-name" class="input" required value="${esc(editingItem.name)}" />
+                </div>
+                <div class="grid-2" style="gap:10px;">
+                  <div>
+                    <label class="field-label">Tipo</label>
+                    <select id="it-kind" class="select">
+                      <option value="produto" ${!isServ ? "selected" : ""}>Produto (Venda)</option>
+                      <option value="servico" ${isServ ? "selected" : ""}>Serviço</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="field-label">Código / SKU</label>
+                    <input id="it-code" class="input num" value="${esc(editingItem.code)}" />
+                  </div>
+                </div>
+                <div>
+                  <label class="field-label">Categoria</label>
+                  <input id="it-cat" class="input" value="${esc(editingItem.category)}" placeholder="Ex: Beleza, Alimentação, Consultoria..." />
+                </div>
+                <div>
+                  <label class="field-label">${isServ ? "Unidade de Cobrança (ex: Hora, Sessão, Pacote)" : "Unidade / Peso / Volume (ex: 1 kg, 250 ml, Un)"}</label>
+                  <input id="it-unit" class="input" value="${esc(editingItem.unit)}" />
+                </div>
+                <div class="span-2">
+                  <label class="field-label">Foto do ${isServ ? "Serviço / Portfólio" : "Produto"} (Anexo do Computador/Celular)</label>
+                  <div class="photo-drop">
+                    ${editingItem.image ? `
+                      <img src="${esc(editingItem.image)}" class="preview-lg" style="margin-bottom:10px;" alt="Foto anexada" />
+                    ` : `<p style="color:var(--muted); margin:0 0 8px;">Nenhuma foto anexada ainda.</p>`}
+                    <div style="display:flex; gap:10px; justify-content:center; align-items:center; flex-wrap:wrap;">
+                      <input type="file" accept="image/*" onchange="uploadItemPhoto('${esc(editingItem.id)}', this)" />
+                      ${editingItem.image ? `<button type="button" class="btn btn-danger btn-sm" onclick="removeItemPhoto('${esc(editingItem.id)}')">Remover foto</button>` : ""}
+                    </div>
+                  </div>
+                </div>
+                <div class="span-2">
+                  <label class="field-label">Descrição Comercial</label>
+                  <textarea id="it-desc" rows="2" class="textarea">${esc(editingItem.description)}</textarea>
+                </div>
+                <div class="span-2">
+                  <label class="field-label">${isServ ? "Escopo / Etapas da Entrega" : "Ingredientes / Composição / Materiais"}</label>
+                  <textarea id="it-comp" rows="2" class="textarea">${esc(editingItem.composition)}</textarea>
+                </div>
+                <div>
+                  <label class="field-label">${isServ ? "Como é Executado (Processo)" : "Processo de Fabricação / Produção"}</label>
+                  <textarea id="it-proc" rows="2" class="textarea">${esc(editingItem.process)}</textarea>
+                </div>
+                <div>
+                  <label class="field-label">${isServ ? "Parceiros / Recursos Necessários" : "Fornecedores / Origem"}</label>
+                  <textarea id="it-supp" rows="2" class="textarea">${esc(editingItem.supplier)}</textarea>
+                </div>
+                <div>
+                  <label class="field-label">Custo Direto Atual (calculado na Precificação)</label>
+                  <input class="input num" readonly value="${brl(calc.cdu)}" />
+                </div>
+                <div>
+                  <label class="field-label">Preço de Venda Atual (R$)</label>
+                  <input id="it-price" class="input num" value="${esc(editingItem.price || (calc.finalPrice ? calc.finalPrice.toFixed(2).replace(".", ",") : ""))}" />
+                </div>
+                <div class="span-2" style="display:flex; gap:10px; justify-content:flex-end;">
+                  <button type="button" class="btn btn-outline" onclick="cancelEditItem()">Fechar</button>
+                  <button type="submit" class="btn btn-primary">Salvar Ficha Técnica</button>
+                </div>
+              </form>
+            </div>
+          `;
+        })() : ""}
+
+        <div style="margin-bottom:14px;">
+          <input class="input" style="max-width:360px;" placeholder="🔍 Buscar produto ou serviço..." value="${esc(ui.searchCatalog)}" oninput="setCatalogSearch(this.value)" />
+        </div>
+
+        <div class="grid-3">
+          ${filtered.map(it => {
+            const calc = computePricing(it.pricing);
+            return `
+              <article class="card" style="display:flex; flex-direction:column; padding:14px;">
+                <div style="aspect-ratio:4/3; border-radius:6px; overflow:hidden; background:#F8FAFC; border:1px solid var(--border); display:flex; align-items:center; justify-content:center;">
+                  ${it.image ? `<img src="${esc(it.image)}" style="width:100%; height:100%; object-fit:cover;" alt="${esc(it.name)}" />` : `<span style="color:var(--muted); font-size:12px;">Sem foto anexada</span>`}
+                </div>
+                <div style="margin-top:12px; flex:1;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                    <span class="badge ${it.kind === "servico" ? "warn" : ""}">${it.kind === "servico" ? "Serviço" : "Produto"}</span>
+                    <span class="num" style="font-size:11px; color:var(--muted);">${esc(it.code || "")}</span>
+                  </div>
+                  <h3 style="font-size:16px; margin-top:8px;">${esc(it.name)}</h3>
+                  <p style="font-size:12px; color:var(--muted); margin:4px 0 0;">${esc(it.category || "Sem categoria")} · ${esc(it.unit || "")}</p>
+                  <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:12.5px;">
+                    <span>Custo: <strong class="num">${brl(calc.cdu)}</strong></span>
+                    <span>Preço: <strong class="num" style="color:var(--primary);">${calc.finalPrice ? brl(calc.finalPrice) : "—"}</strong></span>
+                  </div>
+                </div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:12px; padding-top:10px; border-top:1px solid var(--border);">
+                  <button class="btn btn-outline btn-sm" onclick="editItem('${esc(it.id)}')">Editar Ficha / Foto</button>
+                  <button class="btn btn-primary btn-sm" onclick="openItemPlan('${esc(it.id)}', 'precificacao')">Precificar</button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteItem('${esc(it.id)}')">Excluir</button>
+                </div>
+              </article>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function renderPlanModulesHtml(planData, tabId) {
+      const modules = planData.modules || [];
+      const customFields = planData.customFields || [];
+
+      return `
+        <div>
+          ${modules.map(m => `
+            <div class="module-card">
+              <div class="module-head">
+                <div>
+                  <h4 style="font-size:15px; color:var(--ink);">${esc(m.title)}</h4>
+                  <p style="font-size:12px; color:var(--muted); margin:2px 0 0;">${esc(m.desc || "")}</p>
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="addFieldToModule('${tabId}','${m.id}')">+ Campo neste módulo</button>
+              </div>
+              <div class="grid-2">
+                ${(m.fields || []).map(f => `
+                  <div style="background:#FFF; border:1px solid var(--border); border-radius:6px; padding:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:6px;">
+                      <input class="input" style="font-weight:600; font-size:12.5px; padding:5px 8px; border-color:transparent; background:#F8FAFC;"
+                        value="${esc(f.label)}" oninput="updateModuleField('${tabId}','${m.id}','${f.id}','label',this.value)" />
+                      ${m.fields.length > 1 ? `<button class="btn btn-danger btn-sm" title="Remover campo" onclick="removeModuleField('${tabId}','${m.id}','${f.id}')">✕</button>` : ""}
+                    </div>
+                    <textarea rows="3" class="textarea" placeholder="Preencha as informações deste tópico..."
+                      oninput="updateModuleField('${tabId}','${m.id}','${f.id}','value',this.value)">${esc(f.value)}</textarea>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+          `).join("")}
+
+          <div class="module-card" style="border-left-color:var(--accent);">
+            <div class="module-head">
+              <div>
+                <h4 style="font-size:15px;">Campos Extras Personalizados (Opcional)</h4>
+                <p style="font-size:12px; color:var(--muted); margin:2px 0 0;">Crie tópicos adicionais exclusivos para este plano.</p>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="addCustomField('${tabId}')">+ Novo Campo Personalizado</button>
+            </div>
+            ${customFields.length ? `
+              <div style="display:grid; gap:10px;">
+                ${customFields.map(f => `
+                  <div style="background:#FFF; border:1px solid var(--border); border-radius:6px; padding:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
+                      <input class="input" style="font-weight:600; max-width:460px;" value="${esc(f.label)}"
+                        placeholder="Título do campo..." oninput="updateCustomField('${tabId}','${f.id}','label',this.value)" />
+                      <button class="btn btn-danger btn-sm" onclick="removeCustomField('${tabId}','${f.id}')">Remover</button>
+                    </div>
+                    <textarea rows="2" class="textarea" placeholder="Descreva aqui..."
+                      oninput="updateCustomField('${tabId}','${f.id}','value',this.value)">${esc(f.value)}</textarea>
+                  </div>
+                `).join("")}
+              </div>
+            ` : `<p style="font-size:12.5px; color:var(--muted); margin:0;">Nenhum campo extra adicionado neste plano.</p>`}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPlanAttachmentsHtml(planData, tabId, tabLabel) {
+      const atts = planData.attachments || [];
+      return `
+        <div class="module-card" style="border-left-color:var(--success); margin-top:16px;">
+          <div class="module-head">
+            <div>
+              <h4 style="font-size:15px;">📎 Anexos do Plano (${esc(tabLabel)})</h4>
+              <p style="font-size:12px; color:var(--muted); margin:2px 0 0;">Anexe fotos, artes, organogramas, planilhas, orçamentos ou PDFs comprobatórios.</p>
+            </div>
+            <label class="btn btn-success btn-sm" style="cursor:pointer;">
+              + Anexar Arquivo / Foto
+              <input type="file" style="display:none;" onchange="addPlanAttachment('${tabId}', this)" />
+            </label>
+          </div>
+
+          ${atts.length ? `
+            <div class="grid-2">
+              ${atts.map(a => {
+                const isImg = (a.type || "").startsWith("image/");
+                return `
+                  <div class="att-card">
+                    ${isImg
+                      ? `<img src="${esc(a.dataUrl)}" class="thumb" alt="${esc(a.name)}" />`
+                      : `<div class="thumb" style="font-weight:700; color:var(--primary);">${esc((a.name.split(".").pop() || "ARQ").toUpperCase().slice(0,4))}</div>`
+                    }
+                    <div style="flex:1; min-width:0;">
+                      <div style="font-weight:600; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(a.name)}</div>
+                      <div class="num" style="font-size:11px; color:var(--muted); margin-bottom:6px;">${fmtBytes(a.size || 0)}</div>
+                      <input class="input" style="padding:5px 8px; font-size:12px; margin-bottom:8px;" placeholder="Legenda / observação do anexo..."
+                        value="${esc(a.note || "")}" oninput="updateAttachmentNote('${tabId}','${a.id}',this.value)" />
+                      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button class="btn btn-outline btn-sm" onclick="openAttachment('${tabId}','${a.id}')">Visualizar</button>
+                        <a class="btn btn-outline btn-sm" href="${esc(a.dataUrl)}" download="${esc(a.name)}">Baixar</a>
+                        <button class="btn btn-danger btn-sm" onclick="removePlanAttachment('${tabId}','${a.id}')">Excluir</button>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          ` : `
+            <div class="photo-drop" style="background:#FFF; padding:12px;">
+              <p style="font-size:12.5px; color:var(--muted); margin:0;">Nenhum arquivo anexado neste plano ainda.</p>
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    function renderPlanos(company) {
+      const scopeItem = ui.planScope !== "geral" ? company.items.find(i => i.id === ui.planScope) : null;
+      if (ui.planScope !== "geral" && !scopeItem) ui.planScope = "geral";
+
+      const targetPlans = ensurePlanShape(scopeItem ? scopeItem.plans : company.generalPlans);
+      const tab = PLAN_TEMPLATES.find(t => t.id === ui.planTab) || PLAN_TEMPLATES[0];
+      const activePlanData = targetPlans[tab.id];
+      const activeItemForPricing = scopeItem || company.items[0];
+
+      return `
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
+          <div>
+            <h2 style="font-size:22px;">Os 5 Planos Personalizáveis</h2>
+            <p style="color:var(--muted); margin:2px 0 0;">Cada plano possui módulos detalhados, campos personalizáveis e anexos de arquivos/fotos.</p>
+          </div>
+          <div style="min-width:260px;">
+            <label class="field-label">Escopo do Planejamento</label>
+            <select class="select" onchange="setPlanScope(this.value)">
+              <option value="geral" ${ui.planScope === "geral" ? "selected" : ""}>🏢 Planejamento Geral da Empresa</option>
+              ${company.items.map(it => `
+                <option value="${esc(it.id)}" ${ui.planScope === it.id ? "selected" : ""}>
+                  ${it.kind === "servico" ? "🛠" : "📦"} ${esc(it.name)}
+                </option>
+              `).join("")}
+            </select>
+          </div>
+        </div>
+
+        <div class="tabs">
+          ${PLAN_TEMPLATES.map(t => {
+            const countAtt = (targetPlans[t.id]?.attachments || []).length;
+            return `
+              <button class="tab-btn ${ui.planTab === t.id ? "active" : ""}" onclick="setPlanTab('${t.id}')">
+                ${esc(t.label)}${countAtt ? ` <span class="badge" style="margin-left:4px;">${countAtt}</span>` : ""}
+              </button>
+            `;
+          }).join("")}
+        </div>
+
+        ${ui.planTab === "precificacao" ? `
+          ${renderPrecificacaoTab(company, activeItemForPricing)}
+          <div class="card" style="margin-top:16px;">
+            <h3 style="font-size:17px; margin-bottom:12px;">Módulos Estratégicos de Precificação</h3>
+            ${renderPlanModulesHtml(activePlanData, "precificacao")}
+            ${renderPlanAttachmentsHtml(activePlanData, "precificacao", tab.label)}
+          </div>
+        ` : `
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
+              <div>
+                <h3 style="font-size:17px;">${esc(tab.label)} — ${scopeItem ? esc(scopeItem.name) : "Visão Geral da Empresa"}</h3>
+                <p style="font-size:12px; color:var(--muted); margin:2px 0 0;">As alterações nos módulos e anexos são salvas automaticamente na nuvem.</p>
+              </div>
+            </div>
+
+            ${renderPlanModulesHtml(activePlanData, tab.id)}
+            ${ui.planTab === "financeiro" ? renderFinanceiroBreakEven(company, activeItemForPricing) : ""}
+            ${renderPlanAttachmentsHtml(activePlanData, tab.id, tab.label)}
+          </div>
+        `}
+      `;
+    }
+
+    function renderFinanceiroBreakEven(company, refItem) {
+      const fixedTotal = getCompanyFixedTotal(company);
+      const calc = refItem ? computePricing(refItem.pricing) : null;
+      const beUnits = calc && calc.contribMargin > 0 ? Math.ceil(fixedTotal / calc.contribMargin) : 0;
+      const beRev = calc ? beUnits * calc.finalPrice : 0;
+
+      return `
+        <div class="module-card" style="border-left-color:var(--ink); margin-top:16px;">
+          <div class="module-head">
+            <div>
+              <h4 style="font-size:15px;">Módulo 3.3 · Custos Fixos Mensais &amp; Ponto de Equilíbrio Integrado</h4>
+              <p style="font-size:12px; color:var(--muted); margin:2px 0 0;">Os custos fixos abaixo integram automaticamente com a margem de contribuição dos produtos/serviços.</p>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="addFixedCost()">+ Adicionar Custo Fixo</button>
+          </div>
+
+          <div style="display:grid; gap:8px; margin-bottom:16px;">
+            ${(company.fixedCosts || []).map(fc => `
+              <div style="display:grid; grid-template-columns:1fr 160px auto; gap:8px; align-items:center;">
+                <input class="input" value="${esc(fc.name)}" placeholder="Descrição do custo fixo" oninput="updateFixedCost('${fc.id}','name',this.value)" />
+                <input class="input num" inputmode="decimal" value="${esc(fc.value)}" placeholder="0,00" oninput="updateFixedCost('${fc.id}','value',this.value)" />
+                <button class="btn btn-danger btn-sm" onclick="removeFixedCost('${fc.id}')">✕</button>
+              </div>
+            `).join("")}
+          </div>
+
+          <div class="grid-3">
+            <div class="kpi-card">
+              <div class="kpi-label">Total Custos Fixos / Mês</div>
+              <div id="fin-fixed-total" class="kpi-value num">${brl(fixedTotal)}</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Ponto de Equilíbrio (${refItem ? esc(refItem.name.slice(0,20)) : "—"})</div>
+              <div id="fin-be-units" class="kpi-value num" style="color:var(--primary);">${beUnits || "—"}</div>
+              <div class="kpi-sub">unidades / serviços por mês</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Faturamento de Equilíbrio</div>
+              <div id="fin-be-rev" class="kpi-value num" style="color:var(--success);">${beRev ? brl(beRev) : "—"}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPrecificacaoTab(company, item) {
+      if (!item) {
+        return `<div class="card"><p>Cadastre pelo menos um produto ou serviço em <strong>Catálogo &amp; Fichas</strong> para fazer a precificação detalhada.</p></div>`;
+      }
+      const pr = item.pricing || createDefaultPricing();
+      const c = computePricing(pr);
+
+      return `
+        <div class="grid-2" style="align-items:start;">
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px;">
+              <div>
+                <span class="badge ${item.kind === "servico" ? "warn" : ""}">${item.kind === "servico" ? "Serviço" : "Produto"}</span>
+                <h3 style="font-size:17px; margin-top:4px;">1. Composição de Custos Diretos (${esc(item.name)})</h3>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="addDirectCost('${esc(item.id)}')">+ Insumo / Etapa</button>
+            </div>
+
+            <div style="display:grid; gap:8px;">
+              ${(pr.directCosts || []).map(dc => `
+                <div style="display:grid; grid-template-columns:1fr 125px auto; gap:8px; align-items:center;">
+                  <input class="input" value="${esc(dc.name)}" placeholder="Ex: Matéria-prima, embalagem, hora..." oninput="updateDirectCost('${esc(item.id)}','${dc.id}','name',this.value)" />
+                  <input class="input num" inputmode="decimal" value="${esc(dc.value)}" placeholder="0,00" oninput="updateDirectCost('${esc(item.id)}','${dc.id}','value',this.value)" />
+                  <button class="btn btn-danger btn-sm" onclick="removeDirectCost('${esc(item.id)}','${dc.id}')">✕</button>
+                </div>
+              `).join("")}
+            </div>
+
+            <div style="display:flex; justify-content:space-between; margin-top:12px; padding:10px 12px; background:#F8FAFC; border-radius:6px; font-weight:700;">
+              <span>Custo Direto Unitário (CDU)</span>
+              <span id="pr-cdu" class="num">${brl(c.cdu)}</span>
+            </div>
+
+            <h3 style="font-size:16px; margin:22px 0 12px;">2. Impostos, Taxas e Margem Desejada (%)</h3>
+            <div class="grid-2" style="gap:12px;">
+              <div>
+                <label class="field-label">Impostos s/ Venda (%)</label>
+                <input class="input num" inputmode="decimal" value="${esc(pr.pctTax)}" oninput="updatePricingParam('${esc(item.id)}','pctTax',this.value)" />
+              </div>
+              <div>
+                <label class="field-label">Taxa Cartão / Marketplace (%)</label>
+                <input class="input num" inputmode="decimal" value="${esc(pr.pctCard)}" oninput="updatePricingParam('${esc(item.id)}','pctCard',this.value)" />
+              </div>
+              <div>
+                <label class="field-label">Comissão de Vendas (%)</label>
+                <input class="input num" inputmode="decimal" value="${esc(pr.pctCommission)}" oninput="updatePricingParam('${esc(item.id)}','pctCommission',this.value)" />
+              </div>
+              <div>
+                <label class="field-label">Outras Taxas Variáveis (%)</label>
+                <input class="input num" inputmode="decimal" value="${esc(pr.pctOther)}" oninput="updatePricingParam('${esc(item.id)}','pctOther',this.value)" />
+              </div>
+              <div>
+                <label class="field-label">Rateio de Custos Fixos (%)</label>
+                <input class="input num" inputmode="decimal" value="${esc(pr.pctFixedAlloc)}" oninput="updatePricingParam('${esc(item.id)}','pctFixedAlloc',this.value)" />
+              </div>
+              <div>
+                <label class="field-label" style="color:var(--primary);">Margem de Lucro Desejada (%)</label>
+                <input class="input num" inputmode="decimal" value="${esc(pr.pctProfit)}" oninput="updatePricingParam('${esc(item.id)}','pctProfit',this.value)" />
+              </div>
+            </div>
+
+            <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border);">
+              <label class="field-label">Preço Praticado / Simulado pelo Grupo (R$ — opcional)</label>
+              <input class="input num" inputmode="decimal" placeholder="Deixe vazio para usar o Preço Sugerido" value="${esc(pr.practicedPrice)}" oninput="updatePricingParam('${esc(item.id)}','practicedPrice',this.value)" />
+            </div>
+          </div>
+
+          <div class="card" style="border-color:var(--primary);">
+            <h3 style="font-size:17px; margin-bottom:14px;">Resultado Automático &amp; DRE Unitária</h3>
+            <div id="pricing-result-box">${buildPricingResultHtml(company, item, c)}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function buildPricingResultHtml(company, item, c) {
+      if (c.invalid) {
+        return `<div class="badge danger" style="padding:12px; width:100%; border-radius:6px;">
+          A soma das porcentagens (${fmtPct(c.totalPct)}) atingiu ou passou de 100%. Reduza taxas ou a margem desejada para calcular o Markup Divisor.
+        </div>`;
+      }
+      const fixedTotal = getCompanyFixedTotal(company);
+      const beUnits = c.contribMargin > 0 ? Math.ceil(fixedTotal / c.contribMargin) : 0;
+
+      return `
+        <div class="grid-2" style="gap:12px; margin-bottom:16px;">
+          <div class="kpi-card" style="background:var(--primary-soft); border-color:#BFDBFE;">
+            <div class="kpi-label" style="color:var(--primary);">Preço Sugerido (Markup)</div>
+            <div class="kpi-value num" style="color:var(--primary);">${brl(c.suggestedPrice)}</div>
+            <div class="kpi-sub num">Multiplicador: ${c.markupMult.toFixed(2)}x</div>
+          </div>
+          <div class="kpi-card" style="background:${c.netProfit > 0 ? "var(--success-soft)" : "var(--danger-soft)"};">
+            <div class="kpi-label">Lucro Líquido Unitário</div>
+            <div class="kpi-value num" style="color:${c.netProfit > 0 ? "var(--success)" : "var(--danger)"}">${brl(c.netProfit)}</div>
+            <div class="kpi-sub num">Margem real: ${fmtPct(c.netProfitPct)}</div>
+          </div>
+        </div>
+
+        ${c.practiced > 0 ? `
+          <div style="margin-bottom:14px; padding:8px 12px; border-radius:6px; background:#FEF3C7; font-size:12.5px;">
+            Simulando com <strong>Preço Praticado: <span class="num">${brl(c.practiced)}</span></strong>
+            ${c.practiced < c.suggestedPrice ? "(abaixo do sugerido)" : "(igual ou acima do sugerido)"}
+          </div>
+        ` : ""}
+
+        <div style="background:#F8FAFC; border:1px solid var(--border); border-radius:6px; padding:14px;">
+          <div class="dre-row"><span>Preço de Venda Considerado</span><span class="num" style="font-weight:700;">${brl(c.finalPrice)} (100%)</span></div>
+          <div class="dre-row"><span>(–) Custo Direto Unitário</span><span class="num" style="color:var(--danger);">– ${brl(c.cdu)}</span></div>
+          <div class="dre-row"><span>(–) Impostos (${fmtPct(c.pctTax)})</span><span class="num">– ${brl(c.valTax)}</span></div>
+          <div class="dre-row"><span>(–) Cartão / Plataforma (${fmtPct(c.pctCard)})</span><span class="num">– ${brl(c.valCard)}</span></div>
+          <div class="dre-row"><span>(–) Comissões + Outras (${fmtPct(c.pctCommission + c.pctOther)})</span><span class="num">– ${brl(c.valCommission + c.valOther)}</span></div>
+          <div class="dre-row" style="font-weight:600; color:var(--primary);">
+            <span>(=) Margem de Contribuição</span>
+            <span class="num">${brl(c.contribMargin)} (${fmtPct(c.contribMarginPct)})</span>
+          </div>
+          <div class="dre-row"><span>(–) Rateio Custos Fixos (${fmtPct(c.pctFixedAlloc)})</span><span class="num">– ${brl(c.valFixedAlloc)}</span></div>
+          <div class="dre-row total" style="color:${c.netProfit > 0 ? "var(--success)" : "var(--danger)"};">
+            <span>(=) Lucro Líquido por Unidade</span>
+            <span class="num">${brl(c.netProfit)} (${fmtPct(c.netProfitPct)})</span>
+          </div>
+        </div>
+
+        <div style="margin-top:14px; padding:12px; border-radius:6px; background:#F8FAFC; border:1px solid var(--border); font-size:12.5px;">
+          <strong>Integração Financeira:</strong> Para cobrir o custo fixo mensal da empresa (<span class="num">${brl(fixedTotal)}</span>) só com este item, é preciso vender
+          <strong class="num" style="color:var(--primary);">${beUnits || "—"}</strong> ${item.kind === "servico" ? "serviços/mês" : "unidades/mês"}.
+        </div>
+
+        <button class="btn btn-primary" style="width:100%; margin-top:14px;" onclick="syncPricingToItem('${esc(item.id)}')">
+          🔄 Aplicar Preço e Custo na Ficha Técnica
+        </button>
+      `;
+    }
+
+    function renderRelatorio(company) {
+      const fixedTotal = getCompanyFixedTotal(company);
+      const generalPlans = ensurePlanShape(company.generalPlans);
+
+      return `
+        <div class="no-print" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+          <div>
+            <h2 style="font-size:22px;">Relatório Integrado &amp; Backup</h2>
+            <p style="color:var(--muted); margin:2px 0 0;">Imprima em PDF para entregar no SENAC ou exporte um arquivo de backup.</p>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="window.print()">🖨 Imprimir / Salvar PDF</button>
+            <button class="btn btn-outline" onclick="exportBackup()">⬇ Exportar JSON</button>
+            <label class="btn btn-outline" style="cursor:pointer;">
+              ⬆ Importar JSON
+              <input type="file" accept="application/json" style="display:none;" onchange="importBackup(this)" />
+            </label>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            ${company.logo ? `<img src="${esc(company.logo)}" class="thumb" alt="" />` : ""}
+            <div>
+              <h2 style="font-size:20px;">${esc(company.name)}</h2>
+              <p style="color:var(--muted); margin:2px 0 0;">${esc(company.segment)} · ${esc(company.team)} · ${esc(company.city)} · CNPJ: ${esc(company.cnpj)}</p>
+            </div>
+          </div>
+          ${company.mission ? `<p style="margin:12px 0 0;"><strong>Missão:</strong> ${esc(company.mission)}</p>` : ""}
+          <p style="margin:8px 0 0;"><strong>Custo Fixo Mensal Total:</strong> <span class="num">${brl(fixedTotal)}</span></p>
+        </div>
+
+        <div class="card" style="margin-bottom:16px;">
+          <h3 style="font-size:16px; margin-bottom:12px;">Catálogo, Fichas e Precificação</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Item</th><th>Unid.</th><th>Custo Direto</th><th>Preço Final</th><th>Lucro Unit.</th><th>Margem</th></tr>
+              </thead>
+              <tbody>
+                ${company.items.map(it => {
+                  const c = computePricing(it.pricing);
+                  return `<tr>
+                    <td><strong>${esc(it.name)}</strong><br/><span style="font-size:11px; color:var(--muted);">${esc(it.description || "")}</span></td>
+                    <td>${esc(it.unit)}</td>
+                    <td class="num">${brl(c.cdu)}</td>
+                    <td class="num">${brl(c.finalPrice)}</td>
+                    <td class="num">${brl(c.netProfit)}</td>
+                    <td class="num">${fmtPct(c.netProfitPct)}</td>
+                  </tr>`;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          ${PLAN_TEMPLATES.map(t => {
+            const pData = generalPlans[t.id];
+            const atts = pData.attachments || [];
+            return `
+              <div class="card">
+                <h3 style="font-size:15px; margin-bottom:10px; color:var(--primary);">${esc(t.label)} (Geral)</h3>
+                ${(pData.modules || []).map(m => `
+                  <div style="margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--border);">
+                    <div style="font-size:12px; font-weight:700; color:var(--ink); margin-bottom:4px;">${esc(m.title)}</div>
+                    ${(m.fields || []).map(f => `
+                      <div style="margin-bottom:4px;">
+                        <span style="font-size:11.5px; font-weight:600;">${esc(f.label)}:</span>
+                        <span style="font-size:12px; color:var(--muted);">${esc(f.value || "Não preenchido")}</span>
+                      </div>
+                    `).join("")}
+                  </div>
+                `).join("")}
+                ${(pData.customFields || []).map(f => `
+                  <div style="margin-bottom:6px;">
+                    <div style="font-size:12px; font-weight:700;">${esc(f.label)}</div>
+                    <div style="font-size:12px; color:var(--muted);">${esc(f.value || "Não preenchido")}</div>
+                  </div>
+                `).join("")}
+                ${atts.length ? `<div style="font-size:11.5px; color:var(--success); margin-top:6px;">📎 ${atts.length} anexo(s): ${atts.map(a => esc(a.name)).join(", ")}</div>` : ""}
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    window.setPage = (p) => { ui.page = p; render(); window.scrollTo(0, 0); };
+
+    window.selectCompany = (id) => {
+      store.activeCompanyId = id;
+      ui.planScope = "geral";
+      ui.editingItemId = null;
+      saveLocalOnly(store);
+      render();
+    };
+
+    window.newCompany = () => {
+      const id = uid("emp");
+      const comp = {
+        id,
+        name: "Nova Empresa SENAC",
+        type: "vendas",
+        segment: "",
+        team: "Técnico em Administração",
+        city: "Bahia",
+        cnpj: "Simulado",
+        mission: "",
+        logo: "",
+        fixedCosts: [{ id: uid("fc"), name: "Custos fixos gerais", value: "0,00" }],
+        items: [],
+        generalPlans: createEmptyPlanData()
+      };
+      store.companies.push(comp);
+      store.activeCompanyId = id;
+      ui.editingCompanyId = id;
+      ui.page = "empresas";
+      saveStore(true);
+      render();
+    };
+
+    window.editCompany = (id) => { ui.editingCompanyId = id; render(); };
+    window.cancelEditCompany = () => { ui.editingCompanyId = null; render(); };
+    window.deleteCompany = (id) => {
+      if (store.companies.length <= 1) return;
+      if (!confirm("Excluir esta empresa e todos os seus planos?")) return;
+      store.companies = store.companies.filter(c => c.id !== id);
+      if (store.activeCompanyId === id) store.activeCompanyId = store.companies[0].id;
+      ui.editingCompanyId = null;
+      saveLocalOnly(store);
+      deleteCompanyFromCloud(id);
+      render();
+    };
+
+    window.uploadCompanyLogo = async (id, input) => {
+      const file = input.files?.[0];
+      if (!file) return;
+      try {
+        const dataUrl = await compressImageFile(file, 320);
+        const comp = store.companies.find(c => c.id === id);
+        if (comp) { comp.logo = dataUrl; saveStore(true); toast("Logo anexada!", "ok"); render(); }
+      } catch { toast("Não foi possível processar a imagem", "err"); }
+    };
+    window.removeCompanyLogo = (id) => {
+      const comp = store.companies.find(c => c.id === id);
+      if (comp) { comp.logo = ""; saveStore(true); render(); }
+    };
+
+    window.newItem = (kind) => {
+      const comp = getActiveCompany();
+      const id = uid("it");
+      comp.items.unshift({
+        id,
+        kind,
+        code: (kind === "servico" ? "SRV-" : "PRD-") + String(comp.items.length + 1).padStart(3, "0"),
+        name: kind === "servico" ? "Novo Serviço" : "Novo Produto",
+        category: "",
+        unit: kind === "servico" ? "Hora" : "Unidade",
+        image: "",
+        description: "",
+        composition: "",
+        process: "",
+        supplier: "",
+        price: "",
+        cost: "",
+        pricing: createDefaultPricing(),
+        plans: createEmptyPlanData()
+      });
+      ui.editingItemId = id;
+      saveStore(true);
+      render();
+    };
+    window.editItem = (id) => { ui.editingItemId = id; render(); };
+    window.cancelEditItem = () => { ui.editingItemId = null; render(); };
+    window.deleteItem = (id) => {
+      if (!confirm("Excluir este item do catálogo?")) return;
+      const comp = getActiveCompany();
+      comp.items = comp.items.filter(i => i.id !== id);
+      if (ui.editingItemId === id) ui.editingItemId = null;
+      if (ui.planScope === id) ui.planScope = "geral";
+      saveStore(true);
+      render();
+    };
+    window.setCatalogSearch = (v) => { ui.searchCatalog = v; render(); };
+
+    window.uploadItemPhoto = async (id, input) => {
+      const file = input.files?.[0];
+      if (!file) return;
+      try {
+        const dataUrl = await compressImageFile(file, 640);
+        const comp = getActiveCompany();
+        const it = comp.items.find(i => i.id === id);
+        if (it) { it.image = dataUrl; saveStore(true); toast("Foto anexada com sucesso!", "ok"); render(); }
+      } catch { toast("Erro ao anexar foto", "err"); }
+    };
+    window.removeItemPhoto = (id) => {
+      const comp = getActiveCompany();
+      const it = comp.items.find(i => i.id === id);
+      if (it) { it.image = ""; saveStore(true); render(); }
+    };
+
+    window.openItemPlan = (itemId, tab) => {
+      ui.page = "planos";
+      ui.planScope = itemId;
+      ui.planTab = tab;
+      render();
+    };
+    window.setPlanScope = (scope) => { ui.planScope = scope; render(); };
+    window.setPlanTab = (tab) => { ui.planTab = tab; render(); };
+
+    function getTargetPlanObj() {
+      const comp = getActiveCompany();
+      const scopeItem = ui.planScope !== "geral" ? comp.items.find(i => i.id === ui.planScope) : null;
+      const plans = scopeItem ? scopeItem.plans : comp.generalPlans;
+      return ensurePlanShape(plans);
+    }
+
+    window.addFieldToModule = (tabId, modId) => {
+      const plans = getTargetPlanObj();
+      const mod = plans[tabId].modules.find(m => m.id === modId);
+      if (!mod) return;
+      mod.fields.push({ id: uid("f"), label: "Novo Campo do Módulo", value: "" });
+      saveStore();
+      render();
+    };
+    window.removeModuleField = (tabId, modId, fieldId) => {
+      const plans = getTargetPlanObj();
+      const mod = plans[tabId].modules.find(m => m.id === modId);
+      if (!mod) return;
+      mod.fields = mod.fields.filter(f => f.id !== fieldId);
+      saveStore();
+      render();
+    };
+    window.updateModuleField = (tabId, modId, fieldId, key, val) => {
+      const plans = getTargetPlanObj();
+      const mod = plans[tabId].modules.find(m => m.id === modId);
+      const f = mod?.fields.find(x => x.id === fieldId);
+      if (f) { f[key] = val; saveStore(); }
+    };
+
+    window.addCustomField = (tabId) => {
+      const plans = getTargetPlanObj();
+      plans[tabId].customFields.push({ id: uid("f"), label: "Novo Campo Personalizado", value: "" });
+      saveStore();
+      render();
+    };
+    window.removeCustomField = (tabId, fieldId) => {
+      const plans = getTargetPlanObj();
+      plans[tabId].customFields = plans[tabId].customFields.filter(f => f.id !== fieldId);
+      saveStore();
+      render();
+    };
+    window.updateCustomField = (tabId, fieldId, key, val) => {
+      const plans = getTargetPlanObj();
+      const f = plans[tabId].customFields.find(x => x.id === fieldId);
+      if (f) { f[key] = val; saveStore(); }
+    };
+
+    window.addPlanAttachment = async (tabId, input) => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const plans = getTargetPlanObj();
+      try {
+        let dataUrl = "";
+        if (file.type.startsWith("image/")) {
+          dataUrl = await compressImageFile(file, 800);
+        } else {
+          if (file.size > 1.5 * 1024 * 1024) {
+            toast("Arquivo maior que 1,5 MB. Use um PDF/documento menor.", "err");
+            return;
+          }
+          dataUrl = await new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = (e) => resolve(e.target.result);
+            r.onerror = reject;
+            r.readAsDataURL(file);
+          });
+        }
+        plans[tabId].attachments.push({
+          id: uid("att"),
+          name: file.name,
+          type: file.type || "application/octet-stream",
+          size: file.size,
+          note: "",
+          dataUrl
+        });
+        if (saveStore(true)) toast("Anexo adicionado ao plano!", "ok");
+        render();
+      } catch {
+        toast("Não foi possível anexar este arquivo.", "err");
+      }
+    };
+
+    window.updateAttachmentNote = (tabId, attId, val) => {
+      const plans = getTargetPlanObj();
+      const att = plans[tabId].attachments.find(a => a.id === attId);
+      if (att) { att.note = val; saveStore(); }
+    };
+
+    window.removePlanAttachment = (tabId, attId) => {
+      if (!confirm("Remover este anexo do plano?")) return;
+      const plans = getTargetPlanObj();
+      plans[tabId].attachments = plans[tabId].attachments.filter(a => a.id !== attId);
+      saveStore(true);
+      render();
+    };
+
+    window.openAttachment = async (tabId, attId) => {
+      const plans = getTargetPlanObj();
+      const att = plans[tabId].attachments.find(a => a.id === attId);
+      if (!att) return;
+      try {
+        const res = await fetch(att.dataUrl);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank");
+      } catch {
+        window.open(att.dataUrl, "_blank");
+      }
+    };
+
+    window.addFixedCost = () => {
+      getActiveCompany().fixedCosts.push({ id: uid("fc"), name: "", value: "0,00" });
+      saveStore(); render();
+    };
+    window.removeFixedCost = (id) => {
+      const c = getActiveCompany();
+      c.fixedCosts = c.fixedCosts.filter(x => x.id !== id);
+      saveStore(); render();
+    };
+    window.updateFixedCost = (id, key, val) => {
+      const comp = getActiveCompany();
+      const fc = comp.fixedCosts.find(x => x.id === id);
+      if (!fc) return;
+      fc[key] = val;
+      saveStore();
+      const fixedTotal = getCompanyFixedTotal(comp);
+      const refItem = (ui.planScope !== "geral" ? comp.items.find(i => i.id === ui.planScope) : null) || comp.items[0];
+      const calc = refItem ? computePricing(refItem.pricing) : null;
+      const beUnits = calc && calc.contribMargin > 0 ? Math.ceil(fixedTotal / calc.contribMargin) : 0;
+      const fEl = document.getElementById("fin-fixed-total");
+      const uEl = document.getElementById("fin-be-units");
+      const rEl = document.getElementById("fin-be-rev");
+      if (fEl) fEl.textContent = brl(fixedTotal);
+      if (uEl) uEl.textContent = beUnits || "—";
+      if (rEl) rEl.textContent = calc && beUnits ? brl(beUnits * calc.finalPrice) : "—";
+    };
+
+    window.addDirectCost = (itemId) => {
+      const it = getActiveCompany().items.find(i => i.id === itemId);
+      if (!it) return;
+      it.pricing.directCosts.push({ id: uid("dc"), name: "", value: "0,00" });
+      saveStore(); render();
+    };
+    window.removeDirectCost = (itemId, dcId) => {
+      const it = getActiveCompany().items.find(i => i.id === itemId);
+      if (!it) return;
+      it.pricing.directCosts = it.pricing.directCosts.filter(x => x.id !== dcId);
+      saveStore(); render();
+    };
+    window.updateDirectCost = (itemId, dcId, key, val) => {
+      const comp = getActiveCompany();
+      const it = comp.items.find(i => i.id === itemId);
+      if (!it) return;
+      const dc = it.pricing.directCosts.find(x => x.id === dcId);
+      if (!dc) return;
+      dc[key] = val;
+      saveStore();
+      refreshPricingPanel(comp, it);
+    };
+    window.updatePricingParam = (itemId, key, val) => {
+      const comp = getActiveCompany();
+      const it = comp.items.find(i => i.id === itemId);
+      if (!it) return;
+      it.pricing[key] = val;
+      saveStore();
+      refreshPricingPanel(comp, it);
+    };
+    function refreshPricingPanel(comp, it) {
+      const c = computePricing(it.pricing);
+      const cduEl = document.getElementById("pr-cdu");
+      const box = document.getElementById("pricing-result-box");
+      if (cduEl) cduEl.textContent = brl(c.cdu);
+      if (box) box.innerHTML = buildPricingResultHtml(comp || getActiveCompany(), it, c);
+    }
+
+    window.syncPricingToItem = (itemId) => {
+      const it = getActiveCompany().items.find(i => i.id === itemId);
+      if (!it) return;
+      const c = computePricing(it.pricing);
+      if (c.invalid || !c.finalPrice) { toast("Corrija as porcentagens antes de aplicar.", "err"); return; }
+      it.cost = c.cdu.toFixed(2).replace(".", ",");
+      it.price = c.finalPrice.toFixed(2).replace(".", ",");
+      saveStore(true);
+      toast("Preço e custo atualizados na Ficha Técnica!", "ok");
+    };
+
+    window.exportBackup = () => {
+      const blob = new Blob([JSON.stringify(store, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "erp-senac-backup.json";
+      a.click();
+    };
+    window.importBackup = (input) => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!Array.isArray(data.companies)) throw new Error();
+          data.companies.forEach(c => {
+            c.generalPlans = ensurePlanShape(c.generalPlans);
+            (c.items || []).forEach(it => { it.plans = ensurePlanShape(it.plans); });
+          });
+          store = data;
+          saveLocalOnly(store);
+          for (const c of store.companies) await pushCompanyToCloud(c);
+          toast("Backup importado e enviado para a nuvem!", "ok");
+          render();
+        } catch { toast("Arquivo JSON inválido.", "err"); }
+      };
+      reader.readAsText(file);
+    };
+
+    function render() {
+      const comp = getActiveCompany();
+      const navItems = [
+        { id: "dashboard", icon: "📊", label: "Visão Geral" },
+        { id: "empresas", icon: "🏢", label: "Empresas" },
+        { id: "catalogo", icon: "📦", label: "Catálogo & Fichas" },
+        { id: "planos", icon: "📑", label: "Os 5 Planos" },
+        { id: "relatorio", icon: "🖨", label: "Relatório / Backup" }
+      ];
+
+      let mainHtml = "";
+      if (ui.page === "empresas") mainHtml = renderEmpresas();
+      else if (ui.page === "catalogo") mainHtml = renderCatalogo(comp);
+      else if (ui.page === "planos") mainHtml = renderPlanos(comp);
+      else if (ui.page === "relatorio") mainHtml = renderRelatorio(comp);
+      else mainHtml = renderDashboard(comp);
+
+      document.getElementById("app").innerHTML = `
+        <div class="erp-layout">
+          <aside class="sidebar">
+            <div class="sidebar-brand">
+              <span class="tag">SENAC · ADM</span>
+              <h1>ERP Integrado</h1>
+            </div>
+            <nav class="sidebar-nav">
+              ${navItems.map(n => `
+                <button class="nav-item ${ui.page === n.id ? "active" : ""}" onclick="setPage('${n.id}')">
+                  <span>${n.icon}</span><span>${n.label}</span>
+                </button>
+              `).join("")}
+            </nav>
+            <div class="sidebar-footer">
+              <div>Empresa ativa:</div>
+              <strong style="color:#FFF;">${esc(comp.name)}</strong>
+            </div>
+          </aside>
+
+          <div class="main-area">
+            <header class="topbar">
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <span style="font-size:12px; color:var(--muted); font-weight:600;">Empresa:</span>
+                <select class="select" style="width:auto; min-width:210px; font-weight:600;" onchange="selectCompany(this.value)">
+                  ${store.companies.map(c => `<option value="${esc(c.id)}" ${c.id === comp.id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}
+                </select>
+                <button class="btn btn-outline btn-sm" onclick="newCompany()">+ Nova Empresa</button>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span id="cloud-pill" class="badge">...</span>
+                <button class="btn btn-outline btn-sm" onclick="loadFromCloud(true)" title="Buscar atualizações de outros alunos">🔄 Atualizar</button>
+              </div>
+            </header>
+
+            <main class="content">${mainHtml}</main>
+          </div>
+        </div>
+
+        <nav class="mobile-bar">
+          ${navItems.map(n => `
+            <button class="${ui.page === n.id ? "active" : ""}" onclick="setPage('${n.id}')">
+              <span>${n.icon}</span><span>${n.label === "Os 5 Planos" ? "Planos" : n.label.split(" ")[0]}</span>
+            </button>
+          `).join("")}
+        </nav>
+      `;
+
+      updateCloudBadge();
+
+      const compForm = document.getElementById("company-form");
+      if (compForm) {
+        compForm.onsubmit = (e) => {
+          e.preventDefault();
+          const target = store.companies.find(c => c.id === ui.editingCompanyId);
+          if (!target) return;
+          target.name = document.getElementById("comp-name").value.trim();
+          target.type = document.getElementById("comp-type").value;
+          target.segment = document.getElementById("comp-segment").value.trim();
+          target.team = document.getElementById("comp-team").value.trim();
+          target.city = document.getElementById("comp-city").value.trim();
+          target.cnpj = document.getElementById("comp-cnpj").value.trim();
+          target.mission = document.getElementById("comp-mission").value.trim();
+          ui.editingCompanyId = null;
+          saveStore(true);
+          toast("Empresa atualizada na nuvem!", "ok");
+          render();
+        };
+      }
+
+      const itemForm = document.getElementById("item-form");
+      if (itemForm) {
+        itemForm.onsubmit = (e) => {
+          e.preventDefault();
+          const it = comp.items.find(i => i.id === ui.editingItemId);
+          if (!it) return;
+          it.name = document.getElementById("it-name").value.trim();
+          it.kind = document.getElementById("it-kind").value;
+          it.code = document.getElementById("it-code").value.trim();
+          it.category = document.getElementById("it-cat").value.trim();
+          it.unit = document.getElementById("it-unit").value.trim();
+          it.description = document.getElementById("it-desc").value.trim();
+          it.composition = document.getElementById("it-comp").value.trim();
+          it.process = document.getElementById("it-proc").value.trim();
+          it.supplier = document.getElementById("it-supp").value.trim();
+          it.price = document.getElementById("it-price").value.trim();
+          ui.editingItemId = null;
+          saveStore(true);
+          toast("Ficha técnica salva na nuvem!", "ok");
+          render();
+        };
+      }
+    }
+
+    render();
+    loadFromCloud(false);
+  </script>
+</body>
+</html>
